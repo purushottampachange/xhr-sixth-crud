@@ -20,7 +20,7 @@ const Templating = (arr) => {
 
         return `
             
-                    <div class="card mb-4">
+                    <div class="card mb-4" id="${c.id}">
                         <div class="card-header">
                             <h5>${c.title}</h5>
                         </div>
@@ -75,6 +75,33 @@ const CreateCard = (obj,id) =>{
     `;
     
     cardContainer.append(card);
+
+    cardForm.reset();
+}
+
+const Patchdata = (obj) =>{
+
+    title.value = obj.title;
+    content.value = obj.body;
+    userId.value = obj.userId;
+
+    submitBtn.classList.add("d-none");
+    updateBtn.classList.remove("d-none");
+}
+
+const UIUPdate = (obj,id) =>{
+
+    let card = document.getElementById(id);
+
+    card.querySelector(".card-header h5").innerHTML = obj.title;
+
+    card.querySelector(".card-body p").innerHTML = obj.body;
+    
+    cardForm.reset();
+
+    submitBtn.classList.remove("d-none");
+
+    updateBtn.classList.add("d-none");
 }
 
 const FetchPosts = () => {
@@ -113,6 +140,87 @@ const FetchPosts = () => {
 
 FetchPosts();
 
+const onEdit = (ele) =>{
+   
+    Loader(true);
+
+    let EDIT_ID = ele.closest(".card").id;
+
+    let EDIT_URL = `${PostURL}/${EDIT_ID}`;
+
+    localStorage.setItem("EDIT_ID",EDIT_ID);
+
+    let xhr = new XMLHttpRequest();
+
+    xhr.open("GET",EDIT_URL);
+
+    xhr.send(null);
+
+    xhr.onload = function(){
+
+        if(xhr.status >= 200 && xhr.status <= 299){
+
+            let data = JSON.parse(xhr.response);
+
+            Patchdata(data);
+            Loader(false);
+        }
+        else{
+
+            console.error(xhr.status);
+        }
+    }
+
+    xhr.onerror = function(){
+
+        console.error("network error");
+        Loader(false);
+    }
+}
+
+const onUpdate = () =>{
+
+    Loader(true);
+
+    let UPDATE_ID = localStorage.getItem("EDIT_ID");
+
+    let UPDATE_URL = `${PostURL}/${UPDATE_ID}`;
+    
+    let UPDATE_OBJ = {
+
+        title: title.value,
+        body: content.value,
+        userId: userId.value,
+        id : UPDATE_ID
+    }
+
+    let xhr = new XMLHttpRequest();
+
+    xhr.open("PATCH",UPDATE_URL);
+
+    xhr.send(JSON.stringify(UPDATE_OBJ));
+
+    xhr.onload = function(){
+
+        if(xhr.status >= 200 && xhr.status < 300){
+          
+             UIUPdate(UPDATE_OBJ,UPDATE_ID);
+             
+             Loader(false);
+        }
+        else{
+
+            console.error(xhr.status);
+        }
+    }
+
+    xhr.onerror = function(){
+
+        console.error("network error");
+        Loader(false);
+    }
+}
+
 const onSubmit = (eve) => {
 
     eve.preventDefault();
@@ -150,3 +258,5 @@ const onSubmit = (eve) => {
 }
 
 cardForm.addEventListener("submit", onSubmit);
+
+updateBtn.addEventListener("click",onUpdate);
