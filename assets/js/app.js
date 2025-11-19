@@ -28,8 +28,8 @@ const Templating = (arr) => {
                             <p>${c.body}</p>
                         </div>
                         <div class="card-footer d-flex justify-content-between">
-                            <button class="btn btn-sm btn-success">Edit</button>
-                            <button class="btn btn-sm btn-danger">Remove</button>
+                            <button class="btn btn-sm btn-success" onclick = "onEdit(this)">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick = "onRemove(this)">Remove</button>
                         </div>
                     </div>
 
@@ -39,22 +39,48 @@ const Templating = (arr) => {
     cardContainer.innerHTML = res;
 }
 
-const Loader = (flag) =>{
+const Loader = (flag) => {
 
-    if(flag){
+    if (flag) {
 
         spinner.classList.remove("d-none");
     }
-    else{
-        
+    else {
+
         spinner.classList.add("d-none")
     }
 }
 
-const FetchPosts = () => {
+const CreateCard = (obj,id) =>{
+
+    let card = document.createElement("div");
+
+    card.id = id ;
+
+    card.className = "card mb-4";
+
+    card.innerHTML = `
+       
+                        <div class="card-header">
+                            <h5>${obj.title}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p>${obj.body}</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between">
+                            <button class="btn btn-sm btn-success" onclick = "onEdit(this)">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick = "onRemove(this)">Remove</button>
+                        </div>
+
+    `;
     
+    cardContainer.append(card);
+}
+
+const FetchPosts = () => {
+
     Loader(true)
-      
+
     let xhr = new XMLHttpRequest();
 
     xhr.open("GET", PostURL);
@@ -72,13 +98,13 @@ const FetchPosts = () => {
 
             Loader(false);
         }
-        else{
-            
+        else {
+
             console.error(xhr.status);
         }
     }
 
-    xhr.onerror = function(){
+    xhr.onerror = function () {
 
         console.error("newtowrk error");
         Loader(false);
@@ -86,3 +112,41 @@ const FetchPosts = () => {
 }
 
 FetchPosts();
+
+const onSubmit = (eve) => {
+
+    eve.preventDefault();
+
+    let cardObj = {
+
+        title: title.value,
+        body: content.value,
+        userId: userId.value
+    }
+
+    let xhr = new XMLHttpRequest();
+
+    xhr.open("POST", PostURL);
+
+    xhr.send(JSON.stringify(cardObj));
+
+    xhr.onload = function () {
+
+        if (xhr.status >= 200 && xhr.status < 300) {
+        
+             let res = JSON.parse(xhr.response);
+             CreateCard(cardObj,res.id);
+        }
+        else{
+
+            console.error(xhr.status);
+        }
+    }
+
+   xhr.onerror = function(){
+
+       console.error("network error");
+   } 
+}
+
+cardForm.addEventListener("submit", onSubmit);
