@@ -14,6 +14,16 @@ const BaseURL = "https://jsonplaceholder.typicode.com";
 
 const PostURL = `${BaseURL}/posts`;
 
+const SnackBar = (icon, msg) => {
+
+    Swal.fire({
+
+        icon: icon,
+        title: msg,
+        timer: 1500
+    })
+}
+
 const Templating = (arr) => {
 
     let res = arr.map(c => {
@@ -51,11 +61,11 @@ const Loader = (flag) => {
     }
 }
 
-const CreateCard = (obj,id) =>{
+const CreateCard = (obj, id) => {
 
     let card = document.createElement("div");
 
-    card.id = id ;
+    card.id = id;
 
     card.className = "card mb-4";
 
@@ -73,13 +83,13 @@ const CreateCard = (obj,id) =>{
                         </div>
 
     `;
-    
+
     cardContainer.append(card);
 
     cardForm.reset();
 }
 
-const Patchdata = (obj) =>{
+const Patchdata = (obj) => {
 
     title.value = obj.title;
     content.value = obj.body;
@@ -89,14 +99,14 @@ const Patchdata = (obj) =>{
     updateBtn.classList.remove("d-none");
 }
 
-const UIUPdate = (obj,id) =>{
+const UIUPdate = (obj, id) => {
 
     let card = document.getElementById(id);
 
     card.querySelector(".card-header h5").innerHTML = obj.title;
 
     card.querySelector(".card-body p").innerHTML = obj.body;
-    
+
     cardForm.reset();
 
     submitBtn.classList.remove("d-none");
@@ -140,85 +150,136 @@ const FetchPosts = () => {
 
 FetchPosts();
 
-const onEdit = (ele) =>{
-   
+const onEdit = (ele) => {
+
     Loader(true);
 
     let EDIT_ID = ele.closest(".card").id;
 
     let EDIT_URL = `${PostURL}/${EDIT_ID}`;
 
-    localStorage.setItem("EDIT_ID",EDIT_ID);
+    localStorage.setItem("EDIT_ID", EDIT_ID);
 
     let xhr = new XMLHttpRequest();
 
-    xhr.open("GET",EDIT_URL);
+    xhr.open("GET", EDIT_URL);
 
     xhr.send(null);
 
-    xhr.onload = function(){
+    xhr.onload = function () {
 
-        if(xhr.status >= 200 && xhr.status <= 299){
+        if (xhr.status >= 200 && xhr.status <= 299) {
 
             let data = JSON.parse(xhr.response);
 
             Patchdata(data);
             Loader(false);
         }
-        else{
+        else {
 
             console.error(xhr.status);
         }
     }
 
-    xhr.onerror = function(){
+    xhr.onerror = function () {
 
         console.error("network error");
         Loader(false);
     }
 }
 
-const onUpdate = () =>{
+const onUpdate = () => {
 
     Loader(true);
 
     let UPDATE_ID = localStorage.getItem("EDIT_ID");
 
     let UPDATE_URL = `${PostURL}/${UPDATE_ID}`;
-    
+
     let UPDATE_OBJ = {
 
         title: title.value,
         body: content.value,
         userId: userId.value,
-        id : UPDATE_ID
+        id: UPDATE_ID
     }
 
     let xhr = new XMLHttpRequest();
 
-    xhr.open("PATCH",UPDATE_URL);
+    xhr.open("PATCH", UPDATE_URL);
 
     xhr.send(JSON.stringify(UPDATE_OBJ));
 
-    xhr.onload = function(){
+    xhr.onload = function () {
 
-        if(xhr.status >= 200 && xhr.status < 300){
-          
-             UIUPdate(UPDATE_OBJ,UPDATE_ID);
-             
-             Loader(false);
+        if (xhr.status >= 200 && xhr.status < 300) {
+
+            UIUPdate(UPDATE_OBJ, UPDATE_ID);
+
+            Loader(false);
+
+             SnackBar("success","post Updated successfully");
         }
-        else{
+        else {
 
             console.error(xhr.status);
         }
     }
 
-    xhr.onerror = function(){
+    xhr.onerror = function () {
 
         console.error("network error");
         Loader(false);
     }
+}
+
+const onRemove = (ele) => {
+
+    Loader(true);
+
+    Swal.fire({
+        title: "Do you want Remove?",
+        showCancelButton: true,
+        confirmButtonText: "Remove",
+    }).then((result) => {
+        if (result.isConfirmed) {
+
+            let REMOVE_ID = ele.closest(".card").id;
+
+            let REMOVE_URL = `${PostURL}/${REMOVE_ID}`;
+
+            let xhr = new XMLHttpRequest();
+
+            xhr.open("DELETE", REMOVE_URL);
+
+            xhr.send(null);
+
+            xhr.onload = function () {
+
+                if (xhr.status >= 200 && xhr.status <= 299) {
+
+                    ele.closest(".card").remove();
+
+                    Loader(false);
+
+                    SnackBar("success","post removed successfully");
+
+                } else {
+
+                    console.error(xhr.status);
+                }
+            }
+
+            xhr.onerror = function () {
+
+                console.error("network error");
+                Loader(false);
+            }
+
+        }
+    });
+
+
 }
 
 const onSubmit = (eve) => {
@@ -241,22 +302,23 @@ const onSubmit = (eve) => {
     xhr.onload = function () {
 
         if (xhr.status >= 200 && xhr.status < 300) {
-        
-             let res = JSON.parse(xhr.response);
-             CreateCard(cardObj,res.id);
+
+            let res = JSON.parse(xhr.response);
+            CreateCard(cardObj, res.id);
+             SnackBar("success","post Created successfully");
         }
-        else{
+        else {
 
             console.error(xhr.status);
         }
     }
 
-   xhr.onerror = function(){
+    xhr.onerror = function () {
 
-       console.error("network error");
-   } 
+        console.error("network error");
+    }
 }
 
 cardForm.addEventListener("submit", onSubmit);
 
-updateBtn.addEventListener("click",onUpdate);
+updateBtn.addEventListener("click", onUpdate);
