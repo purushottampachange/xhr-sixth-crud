@@ -176,7 +176,7 @@ const onEdit = (ele) => {
             Loader(false);
         }
         else {
-
+             Loader(false);
             console.error(xhr.status);
         }
     }
@@ -277,9 +277,13 @@ const onRemove = (ele) => {
             }
 
         }
+        else{
+
+             Loader(false);
+        }
     });
 
-
+   
 }
 
 const onSubmit = (eve) => {
